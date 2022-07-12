@@ -1,37 +1,42 @@
-[org 0x7c00]	;BIOS loads MBR into memory address 0x7c00 so every thing must be offset by this number.
-							; if we didnt do that, we would need something like this two lines below "mov al, [myString + 0x7c00]"
+[org 0x7c00]	;BIOS loads MBR into memory address 0x7c00 (2 sectors offset?) so every thing must be offset by this number.
 
-; call and ret 
+mov [disk], dl ; get the drive number we just read from, after we boot the drive number is saved in dl
+
+xor ax, ax                          
+mov es, ax
+mov ds, ax
+mov bp, 0x8000
+mov sp, bp
+
 
 mov ax, 0
-int 0x16 ; wait for the input of a character
+mov es, ax
+mov ah, 2 ; disk read sectors interrupt call 13h
+mov al, 1 ; number of sectors to read
+mov ch, 0 ; the cylinder from which to read
+mov cl, 2 ; the sector from which to read (the boot sector is 512 bytes and we alread read it, so the next sector (2) is the next 512 bytes)
+mov dh, 0 ; head
+mov dl, [disk] ; drive (disk number)
+mov bx, 0x7e00 ; es:bs buffer address pointer is the extra segmento offset by 0x7e00 which is 0x7c00 + 512
+int 0x13	; call disk service
+
 
 mov ah, 0x0e
-int 0x10 ; print the given character
+add al, 9776
+int 0x10 
 
 mov ah, 0x0e
-mov bx, myString  
+mov al,[0x7e00]
+int 0x10 ; check if it worked 
 
-printString: ;print our string (learning)
-	mov al, [bx] ; [] is a pointer, it is the points to the start of the string, same as C char *myString = "Hello World"
-	cmp al, 0 ; if we reach the end of the string (null terminated) stop.
-	je exit
-	int 0x10 ; print current character in al
-	inc bx ; increment the string pointer to get the next character
-	jmp printString
-
-exit:
-	int 0x10
-
-myString:
-	db "Hello World", 0
-; the boot sector is 512 bytes long ending in 0x55aa, so we fill it with padding zeros 
-; $ means current code, $$ means beginning of current section, so jmp $ is an infinite loop, then all zeros until the 510th byte, then 0x55aa
-; memory layout is always inverted so 0xaa55 = 0x55, 0xaa
+disk: db 0
 
 jmp $ 
 times 510-($-$$) db 0
 dw 0xaa55
 
+db 'A'
+db 'B'
+times 510 db 'J'
 
 
