@@ -52,7 +52,7 @@ GDT_Start:
 		dw 0x0	
 		db 0x0
 		db 0b10011010
-		dw 0b11001111
+		db 0b11001111
 		db 0x0
 	data_descriptor:
 		dw 0xffff
@@ -67,8 +67,6 @@ GDT_End:
 GDT_descriptor:
 	dw GDT_End - GDT_Start - 1;
 	dd GDT_Start
-
-
 
 
 [bits 32]
