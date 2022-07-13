@@ -1,11 +1,15 @@
 #!/bin/bash
 
 
-clang -ffreestanding -m32 -g -c kernel.c -o kernel.o; # could be -target x86?
-nasm kernel_entry.asm -f elf -o kernel_entry.o; # could be -f elf?
-ld -o full_kernel.bin -m elf_i386 -Ttext 0x1000 kernel_entry.o kernel.o --oformat binary --entry main;
-nasm -f bin boot.asm -o boot.bin;
-cat boot.bin full_kernel.bin > os.bin;
+mkdir -p build;
+rm -rf build/*;
 
+nasm boot.asm -f bin -o build/boot.bin;
+nasm kernel_entry.asm -f elf -o build/kernel_entry.o; # could be -f elf?
+clang -target i386-linux-pc-gnu -ffreestanding -m32 -g -c kernel.c -o build/kernel.o; # could be -target x86?
+nasm zeroes.asm -f bin -o build/zeroes.bin;
 
-#qemu-system-x86_64 -drive format=raw,file="./os.bin",index=0,if=floppy,  -m 128M
+ld -o build/full_kernel.bin -m elf_i386 -Ttext 0x1000 build/kernel_entry.o build/kernel.o --oformat binary --entry main;
+
+cat build/boot.bin build/full_kernel.bin build/zeroes.bin > build/os.bin;
+#qemu-system-x86_64 -drive format=raw,file="build/os.bin",index=0,if=floppy,  -m 128M

@@ -1,7 +1,8 @@
-[bits 32]
+section .text
+	[bits 32]
 
-[extern main]
+	[extern main]
 
-call main
+	call main
 
-jmp $
+	jmp $
