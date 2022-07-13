@@ -12,4 +12,5 @@ nasm zeroes.asm -f bin -o build/zeroes.bin;
 ld -o build/full_kernel.bin -m elf_i386 -Ttext 0x1000 build/kernel_entry.o build/kernel.o --oformat binary --entry main;
 
 cat build/boot.bin build/full_kernel.bin build/zeroes.bin > build/os.bin;
-#qemu-system-x86_64 -drive format=raw,file="build/os.bin",index=0,if=floppy,  -m 128M
+
+[ ! -z "$1" ] && qemu-system-x86_64 -drive format=raw,file="build/os.bin",index=0,if=floppy,  -m 128M
