@@ -3,10 +3,10 @@
 mkdir -p build_cross;
 rm -rf build_cross/*;
 
-nasm boot.asm -f bin -o build_cross/boot.bin;
-nasm kernel_entry.asm -f elf -o build_cross/kernel_entry.o; # could be -f elf?
-i386-elf-gcc -ffreestanding -m32 -g -c kernel.c -o build_cross/kernel.o; # could be -target x86?
-nasm zeroes.asm -f bin -o build_cross/zeroes.bin;
+nasm boot/boot.asm -f bin -o build_cross/boot.bin;
+nasm kernel/kernel_entry.asm -f elf -o build_cross/kernel_entry.o; # could be -f elf?
+i386-elf-gcc -ffreestanding -m32 -g -c kernel/kernel.c -o build_cross/kernel.o; # could be -target x86?
+nasm kernel/zeroes.asm -f bin -o build_cross/zeroes.bin;
 
 i386-elf-ld -o build_cross/full_kernel.bin -Ttext 0x1000 build_cross/kernel_entry.o build_cross/kernel.o --oformat binary --entry main;
 

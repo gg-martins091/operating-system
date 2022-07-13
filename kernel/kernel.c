@@ -15,7 +15,7 @@ void print_c(char c) {
 }
 
 void print_s(const char *c, int len) {
-	print_c();
+	print_c(*(&c));
 	/* while (len--) print_c(c++); */
 	/* memcpy((char*)0xb8000, c, len); */
 }
