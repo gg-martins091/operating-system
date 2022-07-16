@@ -1,87 +1,65 @@
-[org 0x7c00]	
-KERNEL_LOCATION equ 0x1000
+ORG 0
+BITS 16
+_start:
+	jmp short start ;BPB (bios parameter block) so we are safe if booting from pendrive
+	nop
+	times 33 db 0
 
 
-mov [DISK], dl 
+start:
+	jmp 0x7c0:step2 ; this effectively sets the CS to 0x7c0
 
 
-xor ax, ax
-mov es, ax			; extra segment
-mov ds, ax			; data segment
-mov bp, 0x8000	; base pointer (base of the stack)
-mov sp, bp			; stack pointer (top of the stack) 
+handle_zero: ;int 0x0 handler
+	mov ah, 0x0e
+	mov al, 'Z'
+	mov bx, 0x00
+	int 0x10
+	iret
 
 
-mov bx, KERNEL_LOCATION
-mov dh, 2
-
-mov ah, 0x02		
-mov al, dh			
-mov ch, 0x00		
-mov dh, 0x00		
-mov cl, 0x02		
-mov dl, [DISK]  
-int 0x13				; read 20 sectors from disk 
-
-
-mov ah, 0x0
-mov al, 0x3
-int 0x10				; switch to text mode
-
-
-CODE_SEG equ code_descriptor - GDT_Start
-DATA_SEG equ data_descriptor - GDT_Start
-
-cli
-lgdt [GDT_descriptor]
-mov eax, cr0
-or eax, 1
-mov cr0, eax
-
-jmp CODE_SEG:start_protected_mode
-
-jmp $
-
-DISK: db 0
-GDT_Start:
-	null_descriptor:
-		dd 0
-		dd 0
-	code_descriptor:
-		dw 0xffff
-		dw 0x0	
-		db 0x0
-		db 0b10011010
-		db 0b11001111
-		db 0x0
-	data_descriptor:
-		dw 0xffff
-		dw 0x0
-		db 0x0
-		db 0b10010010
-		db 0b11001111
-		db 0x0
-GDT_End:
-
-
-GDT_descriptor:
-	dw GDT_End - GDT_Start - 1;
-	dd GDT_Start
-
-
-[bits 32]
-start_protected_mode:
-	mov ax, DATA_SEG			; set up segmento registers and stack
+step2:
+	cli
+	mov ax, 0x7c0
 	mov ds, ax
-	mov ss, ax
 	mov es, ax
-	mov fs, ax
-	mov gs, ax
-	mov ebp, 0x90000
-	mov esp, ebp
+	mov ax, 0x00
+	mov ss, ax
+	mov sp, 0x7c00
+	sti
 
-	jmp KERNEL_LOCATION 
+	;setting up our int 0x0 handler, set the first 2 bytes
+	;of ram to our handler, and the next 2 bytes to the code segment 
+	;that our handler is, so 0x7c0:handle_zero is our subroutine
+	mov word [ss:0x00], handle_zero
+	mov word [ss:0x02], 0x7c0
 
-times 510-($-$$) db 0
+
+	mov si, message
+	call print
+	jmp $
+
+
+print:
+	mov bx, 0
+
+.loop:
+	lodsb
+	cmp al, 0
+	je .done
+	call print_char
+	jmp .loop
+
+.done:
+	ret
+
+
+print_char:
+	mov ah, 0x0e
+	int 0x10
+	ret
+
+message: db 'Hello World!', 0
+
+times 510 - ($ - $$) db 0
 dw 0xaa55
-
