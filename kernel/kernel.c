@@ -15,7 +15,7 @@ void print_c(char c) {
 }
 
 void print_s(const char *c, int len) {
-	print_c(*(&c));
+	print_c(c++);
 	/* while (len--) print_c(c++); */
 	/* memcpy((char*)0xb8000, c, len); */
 }
@@ -23,11 +23,12 @@ void print_s(const char *c, int len) {
 void main() {
 	// 0xb800 is the video memory, simples write to.
 	char c = 'H';
-	print_c(c); 
+	/* print_c(c); */ 
 
 	char s[8] = "Gabriel\0";
 
-	print_s(s, 8);
+	print_c(s);
+	/* print_s(s, 8); */
 	/* printc(*(++s)); */
 
 	return;
