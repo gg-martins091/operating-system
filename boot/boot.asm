@@ -5,18 +5,8 @@ _start:
 	nop
 	times 33 db 0
 
-
 start:
 	jmp 0x7c0:step2 ; this effectively sets the CS to 0x7c0
-
-
-handle_zero: ;int 0x0 handler
-	mov ah, 0x0e
-	mov al, 'Z'
-	mov bx, 0x00
-	int 0x10
-	iret
-
 
 step2:
 	cli
@@ -28,14 +18,23 @@ step2:
 	mov sp, 0x7c00
 	sti
 
-	;setting up our int 0x0 handler, set the first 2 bytes
-	;of ram to our handler, and the next 2 bytes to the code segment 
-	;that our handler is, so 0x7c0:handle_zero is our subroutine
-	mov word [ss:0x00], handle_zero
-	mov word [ss:0x02], 0x7c0
 
+	mov ah, 0x02 ; read sector interrupt call
+	mov al, 0x01 ; read one sector
+	mov ch, 0x0  ; cylinder
+	mov cl, 0x02 ; read sector 0x02
+	mov dh, 0x0  ; read from head 1
+	mov bx, buffer
+	int 0x13
 
-	mov si, message
+	jc error
+
+	mov si, buffer
+	call print
+	jmp $
+
+error:
+	mov si, error_message
 	call print
 	jmp $
 
@@ -53,13 +52,15 @@ print:
 .done:
 	ret
 
-
 print_char:
 	mov ah, 0x0e
 	int 0x10
 	ret
 
-message: db 'Hello World!', 0
+
+error_message: db 'Failed to load sector', 0
 
 times 510 - ($ - $$) db 0
 dw 0xaa55
+
+buffer:
