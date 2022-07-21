@@ -3,7 +3,7 @@ global _start
 extern kernel_start
 
 ; this does not have a section .asm because it must go to .text section as it is the entry to our kernel
-; it is alread aligned with 512 bytes so it would misalign with c code
+; it is already aligned with 512 bytes so it wouldn't misalign with c code
 ; if we did section .asm it would be put after everything else (see linker.ld the .asm section is the last one)
 ; only section .asm files will go there.
 
