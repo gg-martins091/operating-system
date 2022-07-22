@@ -1,4 +1,4 @@
-FILES = ./build/kernel.asm.o ./build/kernel.o
+FILES = ./build/kernel.asm.o ./build/kernel.o ./build/terminal.o
 INCLUDES = -I ./src/kernel
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
@@ -20,6 +20,9 @@ all: ./bin/boot.bin ./bin/kernel.bin
 
 ./build/kernel.o: ./src/kernel/kernel.c
 	i386-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c ./src/kernel/kernel.c -o build/kernel.o
+
+./build/terminal.o: ./src/kernel/terminal.c
+	i386-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c ./src/kernel/terminal.c -o build/terminal.o
 
 clean:
 	rm -rf ./bin/boot.bin
